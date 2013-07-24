@@ -1,19 +1,24 @@
 var b2Vec2 = Box2D.Common.Math.b2Vec2,
     b2BodyDef = Box2D.Dynamics.b2BodyDef,
-    b2Body = Box2D.Dynamics.b2Body,
+    b2Body = Box2D.Dynamics.b2Body,    
     b2FixtureDef = Box2D.Dynamics.b2FixtureDef,
     b2Fixture = Box2D.Dynamics.b2Fixture,
+    b2FilterData = Box2D.Dynamics.b2FilterData,
     b2World = Box2D.Dynamics.b2World,
     b2MassData = Box2D.Collision.Shapes.b2MassData,
     b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
     b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
     b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
 
-var GRAVITY = new b2Vec2(0, 10),
+var GRAVITY = new b2Vec2(0, 0),
     SCALE = 40,
     TIME_STEP = 1 / 60,
     VELOCITY_ITERATIONS = 8,
     POSITION_ITERATIONS = 3;
+    CANVAS = document.getElementById("canvas");
+
+var canvasPosition = new b2Vec2(CANVAS.width / SCALE / 2, CANVAS.height / SCALE / 2);
+
 
 var Physics = window.Physics = function (element, scale) {
   this.world = new b2World(GRAVITY, true);
@@ -61,7 +66,10 @@ Physics.prototype.debug = function () {
 };
 
 var physics,
-    lastFrame = new Date().getTime();
+    lastFrame = new Date().getTime(),
+    player1 = window.player1 = null,
+    player2 = window.player2 = null,
+    canvas = window.canvas = null;
 
 window.gameLoop = function () {
   var currentTime = new Date().getTime();
@@ -85,19 +93,27 @@ var Body = window.Body = function (physics, details) {
   this.definition.type = details.type == "static" ? b2Body.b2_staticBody : b2Body.b2_dynamicBody;
 
   this.body = physics.world.CreateBody(this.definition);
-
+  
   this.fixtureDef = new b2FixtureDef();
   for (var l in this.fixtureDefaults) {
-    this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];
+    this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];    
   }
+ 
+  this.fixtureDef.filter = details.filter || this.fixtureDef.filter;
+ 
+
+  /*var filter = b2FilterData;
+  filter.categoryBits = 0;
+  filter.maskBits = 0;
+  filter.groupIndex = 0;*/
 
   details.shape = details.shape || this.defaults.shape;
 
   switch (details.shape) {
     case "circle":
       details.radius = details.radius || this.defaults.radius;
-      this.fixtureDef.shape = new b2CircleShape(details.radius);     
-  
+      this.fixtureDef.shape = new b2CircleShape(details.radius);
+
       break;
     case "polygon":
       this.fixtureDef.shape = new b2PolygonShape();
@@ -111,6 +127,8 @@ var Body = window.Body = function (physics, details) {
       this.fixtureDef.shape.SetAsBox(details.width / 2, details.height / 2);
       break;
   }
+
+
 
   this.body.CreateFixture(this.fixtureDef);
 };
@@ -137,6 +155,7 @@ Body.prototype.definitionDefaults = {
   bullet: false,
   fixedRotation: false
 };
+
 
 Body.prototype.draw = function (context) {
     var pos = this.body.GetPosition(),
@@ -178,10 +197,8 @@ Body.prototype.draw = function (context) {
         context.drawImage(this.details.image, -this.details.width / 2, -this.details.height / 2,
         this.details.width,
         this.details.height); 
-    }
- 
-    context.restore();
- 
+    } 
+    context.restore(); 
 };
 
 
@@ -191,15 +208,20 @@ function init() {
 	red.src = "img/red.png";
 	green.src = "img/green.png";
 
- physics = new Physics(document.getElementById("canvas"));
+ physics = new Physics(CANVAS);
 
   new Body(physics, { type: "static", x: 0, y: 0, height: 38.4, width: 1 });
   new Body(physics, { type: "static", x: 19.2, y: 0, height: 38.4, width: 1 });
   new Body(physics, { type: "static", x: 0, y: 0, height: 1, width: 38.4 });
   new Body(physics, { type: "static", x: 0, y: 19.2, height: 1, width: 38.4 });
 
-    window.player1 = new Body(physics, { image: red, x: 5, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2 });
-  window.player2 = new Body(physics, { image: green, x: 10, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2});
+  var filter = window.filter = new b2FilterData();
+    filter.categoryBits = 0;
+    filter.maskBits = 0;
+    filter.groupIndex = 0;
+  player1 = new Body(physics, { image: red, x: 5, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2 });
+  player2 = new Body(physics, { image: green, x: 10, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2});
+  canvas = new Body(physics, { filter: filter, color: "#fc7", x: canvasPosition.x, y: canvasPosition.y, height: 12.5, width: 12.5 });
 
   physics.debug();
   requestAnimationFrame(gameLoop);
