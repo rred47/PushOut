@@ -14,7 +14,8 @@ var GRAVITY = new b2Vec2(0, 0),
     SCALE = 40,
     TIME_STEP = 1 / 60,
     VELOCITY_ITERATIONS = 8,
-    POSITION_ITERATIONS = 3;
+    POSITION_ITERATIONS = 3,
+    PLAYER_DISTANCE = 150 / SCALE,
     CANVAS = document.getElementById("canvas");
 
 var canvasPosition = new b2Vec2(CANVAS.width / SCALE / 2, CANVAS.height / SCALE / 2);
@@ -90,17 +91,34 @@ var Body = window.Body = function (physics, details) {
   this.definition.position = new b2Vec2(details.x || 0, details.y || 0);
   this.definition.linearVelocity = new b2Vec2(details.vx || 0, details.vy || 0);
   this.definition.userData = this;
-  this.definition.type = details.type == "static" ? b2Body.b2_staticBody : b2Body.b2_dynamicBody;
 
-  this.body = physics.world.CreateBody(this.definition);
-  
-  this.fixtureDef = new b2FixtureDef();
-  for (var l in this.fixtureDefaults) {
-    this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];    
+  switch (details.type) {
+    case "static":
+      this.definition.type = b2Body.b2_staticBody;
+      break;
+    case "dynamic":
+      this.definition.type = b2Body.b2_dynamicBody;
+      break;
+    case "kinematic":   
+    this.definition.type = b2Body.b2_kinematicBody;  
+    default:
+      this.definition.type = b2Body.b2_dynamicBody;
+      break;
   }
  
+
+
+  //this.definition.type = details.type == "static" ? b2Body.b2_staticBody : b2Body.b2_dynamicBody;
+
+  this.body = physics.world.CreateBody(this.definition);
+
+  this.fixtureDef = new b2FixtureDef();
+  for (var l in this.fixtureDefaults) {
+    this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];
+  }
+
   this.fixtureDef.filter = details.filter || this.fixtureDef.filter;
- 
+
 
   /*var filter = b2FilterData;
   filter.categoryBits = 0;
@@ -205,8 +223,10 @@ Body.prototype.draw = function (context) {
 function init() {
 	var red = new Image();
 	var green = new Image();
+	var canvasImage = new Image();
 	red.src = "img/red.png";
 	green.src = "img/green.png";
+  canvasImage.src = "img/canvas.png";
 
  physics = new Physics(CANVAS);
 
@@ -219,9 +239,11 @@ function init() {
     filter.categoryBits = 0;
     filter.maskBits = 0;
     filter.groupIndex = 0;
-  player1 = new Body(physics, { image: red, x: 5, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2 });
-  player2 = new Body(physics, { image: green, x: 10, y: 10 , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2});
-  canvas = new Body(physics, { filter: filter, color: "#fc7", x: canvasPosition.x, y: canvasPosition.y, height: 12.5, width: 12.5 });
+
+    
+  player1 = new Body(physics, { image: red, x: canvasPosition.x + PLAYER_DISTANCE, y: canvasPosition.y - PLAYER_DISTANCE , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2 });
+  player2 = new Body(physics, { image: green, x: canvasPosition.x - PLAYER_DISTANCE, y: canvasPosition.y + PLAYER_DISTANCE , angularVelocity: Math.PI, fixedRotation: true , shape: "circle", height: 2, width: 2});
+   canvas = new Body(physics, {image: canvasImage, type: "kinematic", filter: filter, x: canvasPosition.x, y: canvasPosition.y, height: 12.5, width: 12.5 });
 
   physics.debug();
   requestAnimationFrame(gameLoop);
@@ -229,4 +251,5 @@ function init() {
 };
 
 window.addEventListener("load", init);
+
 
