@@ -221,7 +221,7 @@ Body.prototype.draw = function (context) {
 
 
 function init() {
-	var red = new Image();
+  var red = new Image();
 	var green = new Image();
 	var canvasImage = new Image();
 	red.src = "img/red.png";
