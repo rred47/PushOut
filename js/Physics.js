@@ -5,6 +5,11 @@ var Physics = window.Physics = function (element, scale) {
   this.scale = scale || SCALE;
   this.dtRemaining = 0;
   this.timeStep = TIME_STEP;
+
+  var img = new Image();
+  img.src = 'img/red.png';
+
+  this.context.drawImage(img, 0, 0, 300, 300);
 };
 
 Physics.prototype.step = function (dt) {

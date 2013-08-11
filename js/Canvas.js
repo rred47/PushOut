@@ -5,31 +5,50 @@ canvasFilter.categoryBits = 0;
 canvasFilter.maskBits = 0;
 canvasFilter.groupIndex = 0;
 
-var Canvas = window.Canvas = function (physics, details) {	
-	this.physics = physics;
-  this.details = details || {};	
-	//this.details.filter = canvasFilter;
-	this.fixtureDef = {};
-	this.fixtureDef.filter = canvasFilter;
-			
-//	extend(Canvas, new Body(this.physics, this.details));
-
-	this.prototype = new Body(this.physics, this.details);	
-	this.prototype.fixtureDef.filter = this.fixtureDef.filter;
-	this.prototype.body.CreateFixture(this.prototype.fixtureDef);
-	
+var Canvas = window.Canvas = function (physics, details) {
+  this.physics = physics;
+  this.details = details || {};
+  this.fixtureDef = {};
+  this.fixtureDef.filter = canvasFilter;
+  this.prototype = new Body(this.physics, this.details);
+  this.prototype.fixtureDef.filter = this.fixtureDef.filter;
+  this.prototype.body.CreateFixture(this.prototype.fixtureDef);
 };
 
-//Canvas.prototype = new Body();//(canvas.physics, canvas.details);
+Canvas.prototype.update = function (startTime, currentTime) {
+  var xSpeed = 0.0,
+      ySpeed = 0.0,
+      angularVelocity = 0.0,
+      gameTime = currentTime - startTime,
+      linearPeriod = parseInt(gameTime / 1000) % 4,
+      angularPeriod = parseInt(gameTime / 1000) % 21; 
 
-//extend(Canvas, Body);
+  switch (linearPeriod) {
+    case 0:
+      xSpeed = 7.5 / SCALE;
+      ySpeed = -10 / SCALE;
+      break;
+    case 1:
+      xSpeed = -7.5 / SCALE;
+      ySpeed = -15 / SCALE;
+      break;
+    case 2:
+      xSpeed = -15 / SCALE;
+      ySpeed = 10 / SCALE;
+      break;
+    case 3:
+      xSpeed = 15 / SCALE;
+      ySpeed = 15 / SCALE;
+      break;
+    default:
+      xSpeed = 0.0;
+      ySpeed = 0.0;
+      break;
+  }
 
-//Canvas.super.details = Canvas.details;
-//Canvas.prototype = new Body();
+  ((angularPeriod >= 0 && angularPeriod < 5) || (angularPeriod >= 16 && angularPeriod < 21)) ? angularVelocity = Math.PI / 16 / 5 : angularVelocity = -Math.PI / 8 / 11;
 
-    
-    // this.fixtureDef.filter = canvasFilter || this.fixtureDef.filter;
- 
 
- 
-
+  canvas.prototype.body.SetLinearVelocity(new b2Vec2(xSpeed, ySpeed));
+  canvas.prototype.body.SetAngularVelocity(angularVelocity);
+};

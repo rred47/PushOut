@@ -1,5 +1,5 @@
 var Body = window.Body = function (physics, details) {
-	//this.physics = physics;
+  //this.physics = physics;
   this.details = details = details || {};
   this.definition = new b2BodyDef();
 
@@ -17,8 +17,9 @@ var Body = window.Body = function (physics, details) {
     case "dynamic":
       this.definition.type = b2Body.b2_dynamicBody;
       break;
-    case "kinematic":   
-    this.definition.type = b2Body.b2_kinematicBody;  
+    case "kinematic":
+      this.definition.type = b2Body.b2_kinematicBody;
+      break;
     default:
       this.definition.type = b2Body.b2_dynamicBody;
       break;
@@ -31,7 +32,7 @@ var Body = window.Body = function (physics, details) {
     this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];
   }
 
- // this.fixtureDef.filter = details.filter || this.fixtureDef.filter;
+  // this.fixtureDef.filter = details.filter || this.fixtureDef.filter;
 
   details.shape = details.shape || this.defaults.shape;
 
@@ -52,7 +53,7 @@ var Body = window.Body = function (physics, details) {
       break;
   }
 
-//  this.body.CreateFixture(this.fixtureDef);
+  //  this.body.CreateFixture(this.fixtureDef);
 };
 
 Body.prototype.defaults = {
